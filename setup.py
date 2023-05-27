@@ -10,6 +10,7 @@ setup(
     name="imagebind",
     version="1.0.0",
     packages=find_packages(),
+    package_data={"imagebind": ["bpe/bpe_simple_vocab_16e6.txt.gz"]},
     install_requires=requirements,
     dependency_links=["https://download.pytorch.org/whl/cu113"],
 )
