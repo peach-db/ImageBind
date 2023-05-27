@@ -13,16 +13,24 @@ from types import SimpleNamespace
 import torch
 import torch.nn as nn
 
-from models.helpers import (EinOpsRearrange, LearnableLogitScaling, Normalize,
-                            SelectElement, SelectEOSAndProject)
-from models.multimodal_preprocessors import (AudioPreprocessor,
-                                             IMUPreprocessor, PadIm2Video,
-                                             PatchEmbedGeneric,
-                                             RGBDTPreprocessor,
-                                             SpatioTemporalPosEmbeddingHelper,
-                                             TextPreprocessor,
-                                             ThermalPreprocessor)
-from models.transformer import MultiheadAttention, SimpleTransformer
+from imagebind.models.helpers import (
+    EinOpsRearrange,
+    LearnableLogitScaling,
+    Normalize,
+    SelectElement,
+    SelectEOSAndProject,
+)
+from imagebind.models.multimodal_preprocessors import (
+    AudioPreprocessor,
+    IMUPreprocessor,
+    PadIm2Video,
+    PatchEmbedGeneric,
+    RGBDTPreprocessor,
+    SpatioTemporalPosEmbeddingHelper,
+    TextPreprocessor,
+    ThermalPreprocessor,
+)
+from imagebind.models.transformer import MultiheadAttention, SimpleTransformer
 
 ModalityType = SimpleNamespace(
     VISION="vision",
@@ -124,9 +132,7 @@ class ImageBindModel(nn.Module):
             imu_embed_dim,
         )
 
-        self.modality_postprocessors = self._create_modality_postprocessors(
-            out_embed_dim
-        )
+        self.modality_postprocessors = self._create_modality_postprocessors(out_embed_dim)
 
     def _create_modality_preprocessors(
         self,
@@ -287,9 +293,7 @@ class ImageBindModel(nn.Module):
         imu_num_heads=8,
         imu_drop_path=0.7,
     ):
-        def instantiate_trunk(
-            embed_dim, num_blocks, num_heads, pre_transformer_ln, add_bias_kv, drop_path
-        ):
+        def instantiate_trunk(embed_dim, num_blocks, num_heads, pre_transformer_ln, add_bias_kv, drop_path):
             return SimpleTransformer(
                 embed_dim=embed_dim,
                 num_blocks=num_blocks,
@@ -303,9 +307,7 @@ class ImageBindModel(nn.Module):
                     add_bias_kv=add_bias_kv,
                 ),
                 pre_transformer_layer=nn.Sequential(
-                    nn.LayerNorm(embed_dim, eps=1e-6)
-                    if pre_transformer_ln
-                    else nn.Identity(),
+                    nn.LayerNorm(embed_dim, eps=1e-6) if pre_transformer_ln else nn.Identity(),
                     EinOpsRearrange("b l d -> l b d"),
                 ),
                 post_transformer_layer=EinOpsRearrange("l b d -> b l d"),
@@ -444,28 +446,18 @@ class ImageBindModel(nn.Module):
     def forward(self, inputs):
         outputs = {}
         for modality_key, modality_value in inputs.items():
-            reduce_list = (
-                modality_value.ndim >= 5
-            )  # Audio and Video inputs consist of multiple clips
+            reduce_list = modality_value.ndim >= 5  # Audio and Video inputs consist of multiple clips
             if reduce_list:
                 B, S = modality_value.shape[:2]
-                modality_value = modality_value.reshape(
-                    B * S, *modality_value.shape[2:]
-                )
+                modality_value = modality_value.reshape(B * S, *modality_value.shape[2:])
 
             if modality_value is not None:
-                modality_value = self.modality_preprocessors[modality_key](
-                    **{modality_key: modality_value}
-                )
+                modality_value = self.modality_preprocessors[modality_key](**{modality_key: modality_value})
                 trunk_inputs = modality_value["trunk"]
                 head_inputs = modality_value["head"]
                 modality_value = self.modality_trunks[modality_key](**trunk_inputs)
-                modality_value = self.modality_heads[modality_key](
-                    modality_value, **head_inputs
-                )
-                modality_value = self.modality_postprocessors[modality_key](
-                    modality_value
-                )
+                modality_value = self.modality_heads[modality_key](modality_value, **head_inputs)
+                modality_value = self.modality_postprocessors[modality_key](modality_value)
 
                 if reduce_list:
                     modality_value = modality_value.reshape(B, S, -1)
@@ -491,9 +483,7 @@ def imagebind_huge(pretrained=False):
 
     if pretrained:
         if not os.path.exists(".checkpoints/imagebind_huge.pth"):
-            print(
-                "Downloading imagebind weights to .checkpoints/imagebind_huge.pth ..."
-            )
+            print("Downloading imagebind weights to .checkpoints/imagebind_huge.pth ...")
             os.makedirs(".checkpoints", exist_ok=True)
             torch.hub.download_url_to_file(
                 "https://dl.fbaipublicfiles.com/imagebind/imagebind_huge.pth",
