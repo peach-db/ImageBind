@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 requirements = []
 
@@ -9,7 +9,7 @@ with open("requirements.txt", "r") as f:
 setup(
     name="imagebind",
     version="1.0.0",
-    packages=["imagebind"],
+    packages=find_packages(),
     install_requires=requirements,
     dependency_links=["https://download.pytorch.org/whl/cu113"],
 )
