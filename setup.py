@@ -7,8 +7,8 @@ with open("requirements.txt", "r") as f:
     requirements.extend(f.read().splitlines())
 
 setup(
-    name="imagebind",
-    version="1.0.0",
+    name="peachdb-imagebind",
+    version="0.0.2",
     packages=find_packages(),
     package_data={"imagebind": ["bpe/bpe_simple_vocab_16e6.txt.gz"]},
     install_requires=requirements,

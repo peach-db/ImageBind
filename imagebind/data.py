@@ -298,7 +298,7 @@ def load_and_transform_video_data(
     for video_path in video_paths:
         video = EncodedVideo.from_path(
             video_path,
-            decoder="decord",
+            decoder="torchvision",
             decode_audio=False,
             **{"sample_rate": sample_rate},
         )
