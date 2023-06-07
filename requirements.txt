@@ -1,7 +1,7 @@
 torch
 torchvision
 torchaudio
-pytorchvideo
+peachdb-pytorchvideo
 timm
 ftfy
 regex

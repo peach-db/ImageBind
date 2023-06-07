@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="peachdb-imagebind",
-    version="0.0.2",
+    version="0.0.3",
     packages=find_packages(),
     package_data={"imagebind": ["bpe/bpe_simple_vocab_16e6.txt.gz"]},
     install_requires=requirements,
